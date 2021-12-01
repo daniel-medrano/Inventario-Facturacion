@@ -1,10 +1,10 @@
-﻿using System;
+﻿using Inventario.Administradores;
+using Inventario.Modelos;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
-using Inventario.Administradores;
-using Inventario.Modelos;
 
 namespace Inventario
 {
@@ -12,6 +12,7 @@ namespace Inventario
     {
         Button bttnActual;
         AdminProductos adminProductos;
+        AdminCompras adminCompras;
         ListViewItem producto;
         
 
@@ -20,8 +21,10 @@ namespace Inventario
             InitializeComponent();
             bttnActual = bttnProductos;
             adminProductos = new AdminProductos();
+            adminCompras = new AdminCompras();
             producto = null;
-            Actualizar();
+            ActualizarLsView(lsViewProductos);
+            ActualizarComprasLsView();
         }
         //Botón general para el boton home, productos, compras, etc.
         private void bttnGeneral_Click(object sender, EventArgs e)
@@ -34,7 +37,6 @@ namespace Inventario
             bttnActual = sender as Button;
             bttnActual.ForeColor = Color.DarkGreen;
             bttnActual.BackColor = Color.LightGreen;
-
 
         }
 
@@ -49,6 +51,7 @@ namespace Inventario
             bttnActual.ForeColor = Color.DarkGreen;
             bttnActual.BackColor = Color.LightGreen;
 
+            ActualizarLsView(lsViewProductos);
             pnlProductos.BringToFront();
         }
 
@@ -62,6 +65,8 @@ namespace Inventario
             bttnActual.ForeColor = Color.DarkGreen;
             bttnActual.BackColor = Color.LightGreen;
 
+            ActualizarComprasLsView();
+            pnlCompras.BringToFront();
         }
 
         private void bttnVentas_Click(object sender, EventArgs e)
@@ -75,16 +80,16 @@ namespace Inventario
             bttnActual.BackColor = Color.LightGreen;
         }
 
-        private void bttnNuevo_Click(object sender, EventArgs e)
+        private void bttnNuevoProducto_Click(object sender, EventArgs e)
         {
             pnlNuevoP.BringToFront();
         
         }
 
-        private void bttnBorrar_Click(object sender, EventArgs e)
+        private void bttnBorrarProducto_Click(object sender, EventArgs e)
         {
             //Utilice el método Cast<>() para poder manipular los elementos del listView.
-            List<ListViewItem> productos = listView1.SelectedItems.Cast<ListViewItem>().ToList();
+            List<ListViewItem> productos = lsViewProductos.SelectedItems.Cast<ListViewItem>().ToList();
 
             if (productos.Count == 0)
             {
@@ -94,21 +99,21 @@ namespace Inventario
 
             foreach (ListViewItem producto in productos)
             {
-                listView1.Items.Remove(producto);
-                adminProductos.Borrar(producto.Text);
+                lsViewProductos.Items.Remove(producto);
+                adminProductos.Borrar(int.Parse(producto.Text));
             }
         }
         //Método para enseñar el panel con los controles para modificar un producto.
-        private void bttnModificar_Click(object sender, EventArgs e)
+        private void bttnModificarProducto_Click(object sender, EventArgs e)
         {
             //Utilice el método Cast<>() para poder manipular los elementos del listView.
-            List<ListViewItem> productos = listView1.SelectedItems.Cast<ListViewItem>().ToList();
+            List<ListViewItem> productos = lsViewProductos.SelectedItems.Cast<ListViewItem>().ToList();
 
             if (productos.Count == 1)
             {
                 pnlModificarP.BringToFront();
-                Producto producto = adminProductos.Buscar(productos[0].Text);
-                txtCodModP.Text = producto.Codigo;
+                Producto producto = adminProductos.Buscar(int.Parse(productos[0].Text));
+                txtCodModP.Text = producto.Codigo.ToString();
                 txtNomModP.Text = producto.Nombre;
                 txtDesModP.Text = producto.Descripcion;
                 txtPreModP.Text = producto.Precio.ToString();
@@ -124,39 +129,40 @@ namespace Inventario
             }
         }
         //Método para modificar definitivamente el producto.
-        private void bttnModificarD_Click(object sender, EventArgs e)
+        //TODO <-------------------------------------------------------------------------------------------------------- Cubrir los posibles errores si se introduce una string en vez de una int o double.
+        private void bttnModificarProductoDef_Click(object sender, EventArgs e)
         {
-            string codigo = txtCodModP.Text;
+            int codigo = int.Parse(txtCodModP.Text);
             string nombre = txtNomModP.Text;
             string descripcion = txtDesModP.Text;
             double precio = double.Parse(txtPreModP.Text);
             int cantidad = int.Parse(txtCanModP.Text);
             adminProductos.Modificar(codigo, nombre, descripcion, precio, cantidad);
             pnlProductos.BringToFront();
-            Actualizar();
+            ActualizarLsView(lsViewProductos);
         }
         //Método para cancelar la modificación de un producto.
-        private void bttnCnlModificar_Click(object sender, EventArgs e)
+        private void bttnCnlModificarProducto_Click(object sender, EventArgs e)
         {
             pnlProductos.BringToFront();
-            Limpiar();
+            LimpiarPnlNuevoP();
         }
 
-        private void bttnCrear_Click(object sender, EventArgs e)
+        private void bttnCrearProducto_Click(object sender, EventArgs e)
         {
             try
             {
-                string codigo = txtBoxCodigo.Text;
+                int codigo = int.Parse(txtBoxCodigo.Text);
                 string nombre = txtBoxNombre.Text;
                 string descripcion = txtBoxDescripcion.Text;
                 double precio = double.Parse(txtBoxPrecio.Text);
                 int cantidad = int.Parse(txtBoxCantidad.Text);
 
                 adminProductos.Crear(codigo, nombre, descripcion, precio, cantidad);
-                Actualizar();
+                ActualizarLsView(lsViewProductos);
 
                 pnlProductos.BringToFront();
-                Limpiar();
+                LimpiarPnlNuevoP();
             }
             catch(Exception ex)
             {
@@ -164,10 +170,10 @@ namespace Inventario
             }
         }
 
-        private void bttnCnlNuevoP_Click(object sender, EventArgs e)
+        private void bttnCnlNuevoProducto_Click(object sender, EventArgs e)
         {
             pnlProductos.BringToFront();
-            Limpiar();
+            LimpiarPnlNuevoP();
         }
 
         private void bttnGreen_MouseEnter(object sender, EventArgs e)
@@ -202,43 +208,55 @@ namespace Inventario
 
         }
         //Método para actualizar los datos del listView.
-        private void Actualizar()
+        private void ActualizarLsView(ListView listView, List<Producto> productos = null)
         {
+
+            ListView lsViewTemp = listView;
             //Se borran los items para volver ser cargados de la estrutura de datos.
-            listView1.Items.Clear();
-            //Se obtiene una lista con los objetos de clase Producto.
-            List<Producto> productos = adminProductos.ObtenerProductos();
+            lsViewTemp.Items.Clear();
+
+            if (productos == null)
+            {
+                productos = adminProductos.ObtenerProductos();
+            }
             //Se añade cada producto en productos al listView.
             foreach (Producto producto in productos)
             {
-                ListViewItem i = new ListViewItem(producto.Codigo);
-                i.ImageIndex = 2;
-                i.SubItems.Add(producto.Nombre);
-                i.SubItems.Add(producto.Descripcion);
-                i.SubItems.Add(producto.Precio.ToString());
-                i.SubItems.Add(producto.Cantidad.ToString());
-                listView1.Items.Add(i);
+                ListViewItem item = new ListViewItem(producto.Codigo.ToString());
+                item.ImageIndex = 2;
+                item.SubItems.Add(producto.Nombre);
+                item.SubItems.Add(producto.Descripcion);
+                item.SubItems.Add(producto.Precio.ToString());
+                item.SubItems.Add(producto.Cantidad.ToString());
+                lsViewTemp.Items.Add(item);
             }
         }
-        //Método para actualizar los datos del listView.
-        private void Actualizar(List<Producto> productos)
+
+        private void ActualizarComprasLsView(List<Compra> compras = null)
         {
+
+            ListView lsViewTemp = lsViewCompras;
             //Se borran los items para volver ser cargados de la estrutura de datos.
-            listView1.Items.Clear();
-            //Se añade cada producto en productos al listView.
-            foreach (Producto producto in productos)
+            lsViewTemp.Items.Clear();
+
+            if (compras == null)
             {
-                ListViewItem i = new ListViewItem(producto.Codigo);
-                i.ImageIndex = 2;
-                i.SubItems.Add(producto.Nombre);
-                i.SubItems.Add(producto.Descripcion);
-                i.SubItems.Add(producto.Precio.ToString());
-                i.SubItems.Add(producto.Cantidad.ToString());
-                listView1.Items.Add(i);
+                compras = adminCompras.ObtenerCompras();
+            }
+            //Se añade cada producto en productos al listView.
+            foreach (Compra compra in compras)
+            {
+                ListViewItem item = new ListViewItem(compra.Codigo.ToString());
+                item.ImageIndex = 2;
+                item.SubItems.Add(compra.CodigoProducto.ToString());
+                item.SubItems.Add(compra.NombreProducto);
+                item.SubItems.Add(compra.Cantidad.ToString());
+                item.SubItems.Add(compra.Fecha.Day + "/" + compra.Fecha.Month + "/" +compra.Fecha.Year);
+                lsViewTemp.Items.Add(item);
             }
         }
-        //Método para limpiar los textBox.
-        private void Limpiar()
+        //Método para limpiar los textBox de productos.
+        private void LimpiarPnlNuevoP()
         {
             //Panel Nuevo Producto
             txtBoxCodigo.Text = "";
@@ -246,6 +264,18 @@ namespace Inventario
             txtBoxDescripcion.Text = "";
             txtBoxPrecio.Text = "";
             txtBoxCantidad.Text = "";
+        }
+
+        private void LimpiarPnlSuplir()
+        {
+            //Panel Nuevo Producto
+            txtCantidadSuplir.Text = "";
+            txtBuscarSuplir.Text = "";
+        }
+
+        private void LimpiarPnlModificarCompra()
+        {
+            txtModificarCan.Text = "";
         }
         //Método para buscar los productos con un textBox. La manera de hacerlo considero que no es la más eficiente pero es la solución que aplique por cuestiones de tiempo.
         private void txtBuscarP_TextChanged(object sender, EventArgs e)
@@ -256,7 +286,7 @@ namespace Inventario
             if (busqueda.Equals(""))
             {
                 //Si no se introduce nada entonces se mantiene el listView igual.
-                Actualizar();
+                ActualizarLsView(lsViewProductos);
                 return;
             }
 
@@ -264,13 +294,160 @@ namespace Inventario
             if (productos.Count >= 1)
             {
                 //Se carga el listView con una lista de productos que cumplen el criterio de búsqueda.
-                Actualizar(productos);
+                ActualizarLsView(lsViewProductos, productos);
             }
             else
             {
                 //Si no cumple con el criterio de búsqueda entonces el listView se mantendra en blanco.
-                listView1.Items.Clear();
+                lsViewProductos.Items.Clear();
             }
+        }
+
+        private void txtBuscarSuplir_TextChanged(object sender, EventArgs e)
+        {
+            //Criterio de búsqueda. Buscará aquellos productos que empiezen por la string introducida.
+            string busqueda = txtBuscarSuplir.Text.Trim().ToLower();
+
+            if (busqueda.Equals(""))
+            {
+                //Si no se introduce nada entonces se mantiene el listView igual.
+                ActualizarLsView(lsViewSeleccionarP);
+                return;
+            }
+
+            List<Producto> productos = adminProductos.BuscarPorNombre(busqueda);
+            if (productos.Count >= 1)
+            {
+                //Se carga el listView con una lista de productos que cumplen el criterio de búsqueda.
+                ActualizarLsView(lsViewSeleccionarP, productos);
+            }
+            else
+            {
+                //Si no cumple con el criterio de búsqueda entonces el listView se mantendra en blanco.
+                lsViewSeleccionarP.Items.Clear();
+            }
+        }
+
+        private void txtBuscarCompra_TextChanged(object sender, EventArgs e)
+        {
+            //Criterio de búsqueda. Buscará aquellas compras que empiecen por la string introducida.
+            string busqueda = txtBuscarCompra.Text.Trim().ToLower();
+
+            if (busqueda.Equals(""))
+            {
+                //Si no se introduce nada entonces se mantiene el listView igual.
+                ActualizarComprasLsView();
+                return;
+            }
+
+            List<Compra> compras = adminCompras.BuscarPorNombre(busqueda);
+            if (compras.Count >= 1)
+            {
+                //Se carga el listView con una lista de productos que cumplen el criterio de búsqueda.
+                ActualizarComprasLsView(compras);
+            }
+            else
+            {
+                //Si no cumple con el criterio de búsqueda entonces el listView se mantendra en blanco.
+                lsViewCompras.Items.Clear();
+            }
+        }
+
+        private void bttnSuplir_Click(object sender, EventArgs e)
+        {
+            ActualizarLsView(lsViewSeleccionarP);
+            pnlSuplir.BringToFront();
+        }
+
+        private void bttnSuplirDef_Click(object sender, EventArgs e)
+        {
+            //Utilice el método Cast<>() para poder manipular los elementos del listView.
+            List<ListViewItem> productos = lsViewSeleccionarP.SelectedItems.Cast<ListViewItem>().ToList();
+
+            if (productos.Count == 0)
+            {
+                MessageBox.Show("No selecciono productos.");
+                return;
+            }
+            int codigo = int.Parse(txtCodigoCompra.Text);
+            int cantidad = int.Parse(txtCantidadSuplir.Text); //TODO <-------------------------- MANEJAR EXCEPCIONES
+            Producto productoComprado = adminProductos.Buscar(int.Parse(productos[0].Text));
+
+            adminCompras.Crear(codigo, productoComprado, cantidad);
+            ActualizarComprasLsView();
+            pnlCompras.BringToFront();
+        }
+
+        private void bttnCnlSuplir_Click(object sender, EventArgs e)
+        {
+            pnlCompras.BringToFront();
+            LimpiarPnlSuplir();
+        }
+
+        private void bttnBorrarCompra_Click(object sender, EventArgs e)
+        {
+            //Utilice el método Cast<>() para poder manipular los elementos del listView.
+            List<ListViewItem> compras = lsViewCompras.SelectedItems.Cast<ListViewItem>().ToList();
+
+            if (compras.Count == 0)
+            {
+                MessageBox.Show("No selecciono registros de compras.");
+                return;
+            }
+
+            foreach (ListViewItem compra in compras)
+            {
+                Compra compraEliminada = adminCompras.Buscar(int.Parse(compra.Text));
+                if (adminProductos.Buscar(compraEliminada.CodigoProducto).Quitar(compraEliminada.Cantidad))
+                {
+                    lsViewCompras.Items.Remove(compra);
+                    adminCompras.Borrar(compraEliminada.Codigo);
+                }
+                else
+                {
+                    MessageBox.Show("No se puede eliminar la compra porque al parecer ya se vendieron productos.");
+                }
+            }
+        }
+
+        private void bttnModificarCompra_Click(object sender, EventArgs e)
+        {
+            //Utilice el método Cast<>() para poder manipular los elementos del listView.
+            List<ListViewItem> compras = lsViewCompras.SelectedItems.Cast<ListViewItem>().ToList();
+
+            if (compras.Count == 1)
+            {
+                pnlModificarCompra.BringToFront();
+                adminCompras.AgregarCompraUtilitaria(adminCompras.Buscar(int.Parse(compras[0].Text)));
+                txtModificarCan.Text = adminCompras.CompraUtil.Cantidad.ToString();
+            }
+            else if (compras.Count > 1)
+            {
+                MessageBox.Show("Solo puede modificar un registo de compra a la vez.");
+            }
+            else
+            {
+                MessageBox.Show("Debe seleccionar un registro de compra.");
+            }
+        }
+
+        private void bttnCnlModificarCompra_Click(object sender, EventArgs e)
+        {
+
+            pnlCompras.BringToFront();
+            LimpiarPnlModificarCompra();
+        }
+
+        private void bttnModificarCompraDef_Click(object sender, EventArgs e)
+        {
+            Producto producto = adminProductos.Buscar(adminCompras.CompraUtil.CodigoProducto);
+            if (!adminCompras.CompraUtil.Modificar(int.Parse(txtModificarCan.Text), producto))
+            {
+                MessageBox.Show("No se pudo modificar porque ya se han vendido productos.");
+            }
+            ActualizarComprasLsView();
+            pnlCompras.BringToFront();
+            LimpiarPnlModificarCompra();
         }
     }
 }

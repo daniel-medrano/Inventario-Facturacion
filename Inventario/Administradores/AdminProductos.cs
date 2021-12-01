@@ -20,7 +20,7 @@ namespace Inventario.Administradores
             
         }
         //Crea un nuevo producto y lo agrega a productos.
-        public bool Crear(string codigo, string nombre, string descripcion, double precio, int cantidad)
+        public bool Crear(int codigo, string nombre, string descripcion, double precio, int cantidad)
         {
             Producto producto = Buscar(codigo);
 
@@ -35,7 +35,7 @@ namespace Inventario.Administradores
             return false;
         }
 
-        public bool Borrar(string codigo)
+        public bool Borrar(int codigo)
         {
             Producto producto = Buscar(codigo);
             if (producto != null)
@@ -48,7 +48,7 @@ namespace Inventario.Administradores
             return false;
         }
 
-        public bool Modificar(string codigo, string nombre, string descripcion, double precio, int cantidad)
+        public bool Modificar(int codigo, string nombre, string descripcion, double precio, int cantidad)
         {
             Producto producto = Buscar(codigo);
             if (producto != null)
@@ -58,11 +58,11 @@ namespace Inventario.Administradores
             return false;
         }
 
-        public Producto Buscar(string codigo)
+        public Producto Buscar(int codigo)
         {
             foreach (Producto producto in productos)
             {
-                if (producto.Codigo.Equals(codigo))
+                if (producto.Codigo == codigo)
                 {
                     return producto;
                 }
@@ -93,7 +93,7 @@ namespace Inventario.Administradores
             return busquedas;            
         }
 
-        private bool CargarProducto(string codigo, string nombre, string descripcion, double precio, int cantidad)
+        private bool CargarProducto(int codigo, string nombre, string descripcion, double precio, int cantidad)
         {
             Producto producto = Buscar(codigo);
 
@@ -118,7 +118,7 @@ namespace Inventario.Administradores
                 {
                     string[] partes = linea.Split('#');
 
-                    CargarProducto(partes[0], partes[1], partes[2], double.Parse(partes[3]), int.Parse(partes[4]));
+                    CargarProducto(int.Parse(partes[0]), partes[1], partes[2], double.Parse(partes[3]), int.Parse(partes[4]));
 
                     linea = leer.ReadLine();
                 }

@@ -9,7 +9,7 @@ namespace Inventario.Modelos
 {
     class Producto
     {
-        public string Codigo { get; set; }
+        public int Codigo { get; set; }
         public string Nombre { get; set; }
         public string Descripcion { get; set; }
         public double Precio { get; set; }
@@ -17,7 +17,7 @@ namespace Inventario.Modelos
 
         //public Clase Imagen {get; set;} OPCIONAL
 
-        public Producto(string codigo, string nombre, string descripcion, double precio, int cantidad)
+        public Producto(int codigo, string nombre, string descripcion, double precio, int cantidad)
         {
             Codigo = codigo;
             Nombre = nombre;
@@ -53,7 +53,7 @@ namespace Inventario.Modelos
                 {
                     string[] partes = linea.Split('#');
 
-                    if (!partes[0].Equals(Codigo))
+                    if (int.Parse(partes[0]) != Codigo)
                     {
                         escribir.WriteLine(linea);
                     }
@@ -117,7 +117,7 @@ namespace Inventario.Modelos
                 {
                     string[] partes = linea.Split('#');
 
-                    if (partes[0].Equals(Codigo))
+                    if (int.Parse(partes[0]) == Codigo)
                     {
                         escribir.WriteLine(ObtenerProducto());
                     }
@@ -145,10 +145,42 @@ namespace Inventario.Modelos
                     escribir.Close();
             }
         }
+        //Método para aumentar la cantidad del producto.
+        public void Suplir(int cantidad)
+        {
+            Cantidad += cantidad;
+            Remplazar();
+        }
+        //Método para reducir la cantidad del producto.
+        public bool Quitar(int cantidad)
+        {
+            if (Cantidad - cantidad >= 0)
+            {
+                Cantidad -= cantidad;
+                Remplazar();
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
 
         public string ObtenerProducto()
         {
             return Codigo + "#" + Nombre + "#" + Descripcion + "#" + Precio + "#" + Cantidad;
+        }
+
+        public bool ModificarCantidad(int cantidad)
+        {
+            int nuevaCantidad = Cantidad + cantidad;
+            if (nuevaCantidad >= 0)
+            {
+                Cantidad = nuevaCantidad;
+                Remplazar();
+                return true;
+            }
+            return false;
         }
     }
 }
