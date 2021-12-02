@@ -142,5 +142,54 @@ namespace Inventario.Administradores
             return productos;
         }
 
+        public double ObtenerTotal(List<int[]> productosVenta)
+        {
+            double subtotal = ObtenerSubtotal(productosVenta);
+            double impuestos = subtotal * 0.13;
+            return subtotal + impuestos;
+        }
+
+        public double ObtenerSubtotal(List<int[]> productosVenta)
+        {
+            double subtotal = 0;
+
+            foreach (int[] registro in productosVenta)
+            {
+                Producto producto = Buscar(registro[0]);
+
+                subtotal += producto.ObtenerPrecioPorCantidad(registro[1]);
+            }
+            return subtotal;
+        }
+
+
+        public void RealizarVenta(List<int[]> productosVenta)
+        {
+            Producto producto = null;
+
+            foreach (int[] registro in productosVenta)
+            {
+                producto = Buscar(registro[0]);
+
+                producto.Cantidad -= registro[1];
+                producto.Remplazar();
+            }
+        }
+
+        public void DeshacerVenta(List<int[]> productosVenta)
+        {
+            Producto producto = null;
+
+            foreach (int[] registro in productosVenta)
+            {
+                producto = Buscar(registro[0]);
+                if (producto == null)
+                {
+                    continue;
+                }
+                producto.Cantidad += registro[1];
+                producto.Remplazar();
+            }
+        }
     }
 }

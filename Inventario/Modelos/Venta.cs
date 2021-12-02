@@ -17,9 +17,10 @@ namespace Inventario.Modelos
         public double Total { get; set; }
         public DateTime Fecha { get; set; }
 
-        private double impuestos = 0.13;
+        public List<int[]> Productos { get; set; }
+        private static double impuesto = 0.13;
         //Constructores
-        public Venta(int numero, string nombreCliente, string correoCliente, int telefonoCliente, double subtotal, double total)
+        public Venta(int numero, string nombreCliente, string correoCliente, int telefonoCliente, double subtotal, double total, List<int[]> productos)
         {
             Numero = numero;
             NombreCliente = nombreCliente;
@@ -28,14 +29,15 @@ namespace Inventario.Modelos
             Subtotal = subtotal;
             Total = total;
             Fecha = DateTime.Now;
+
+            Productos = productos;
         }
 
         public Venta() { }
 
 
-        public bool Modificar(int numero, string nombreCliente, string correoCliente, int telefonoCliente, double subtotal, double total)
+        public bool Modificar(string nombreCliente, string correoCliente, int telefonoCliente, double subtotal, double total)
         {
-            Numero = numero;
             NombreCliente = nombreCliente;
             CorreoCliente = correoCliente;
             TelefonoCliente = telefonoCliente;
@@ -154,9 +156,89 @@ namespace Inventario.Modelos
         }
         public string ObtenerVenta()
         {
-            return Numero + "#" + NombreCliente + "#" + CorreoCliente + "#" + TelefonoCliente + "#" + Subtotal + "#" + Total + "#" + Fecha.ToString();
+            string productosVenta = ObtenerProductos();
+
+            return Numero + "#" + NombreCliente + "#" + CorreoCliente + "#" + TelefonoCliente + "#" + Subtotal + "#" + Total + "#" + Fecha.ToString() + "#" + ObtenerProductos();
         }
 
+        private string ObtenerProductos()
+        {
+            string productos = "";
+            int[] ultimoRegistro = Productos[Productos.Count - 1];
+
+            foreach (int[] registro in Productos)
+            {
+                if (registro == ultimoRegistro)
+                {
+                    productos += registro[0] + "#" + registro[1];
+                }
+                else
+                {
+                    productos += registro[0] + "#" + registro[1] + "#";
+
+                }
+            }
+            return productos;
+        }
+
+        private string ObtenerProductosFactura()
+        {
+            string productos = "";
+            int[] ultimoRegistro = Productos[Productos.Count - 1];
+
+            foreach (int[] registro in Productos)
+            {
+
+                productos += "Código: " + registro[0] + "\n" + "Cantidad: " + registro[1] + "\n\n";
+            }
+            return productos;
+        }
+
+        public int ObtenerCantidad()
+        {
+            return Productos.Count;
+        }
+
+        public string Factura()
+        {
+            return "FACTURA\n" +
+                "Número de Factura: " + Numero + "\n\n" +
+                "DATOS DEL CLIENTE\n" +
+                "Nombre: " + NombreCliente + "\n" +
+                "Correo: " + CorreoCliente + "\n" +
+                "Teléfono: " + TelefonoCliente + "\n\n" +
+                "PRODUCTOS\n" +
+                ObtenerProductosFactura() +
+                "Subtotal: " + Subtotal + "\n" +
+                "Total: " + Total + "\n";
+        }
+
+        public bool Facturar()
+        {
+            StreamWriter escribir = null;
+
+            try
+            {
+                if (File.Exists("Factura.txt"))
+                {
+                    File.Delete("Factura.txt");
+                }
+                escribir = File.AppendText("Factura.txt");
+                escribir.WriteLine(Factura());
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+            finally
+            {
+                if (escribir != null)
+                {
+                    escribir.Close();
+                }
+            }
+        }
 
     }
 }

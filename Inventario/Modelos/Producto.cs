@@ -101,7 +101,7 @@ namespace Inventario.Modelos
             }
         }
 
-        private bool Remplazar()
+        public bool Remplazar()
         {
             StreamReader leer = null;
             StreamWriter escribir = null;
@@ -169,6 +169,11 @@ namespace Inventario.Modelos
         public string ObtenerProducto()
         {
             return Codigo + "#" + Nombre + "#" + Descripcion + "#" + Precio + "#" + Cantidad;
+        }
+
+        public double ObtenerPrecioPorCantidad(int cantidad)
+        {
+            return Precio * cantidad;
         }
 
         public bool ModificarCantidad(int cantidad)
